@@ -6,23 +6,3 @@ users:
     shell: /bin/bash
     ssh_authorized_keys:
       - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCrcWe/XVCSN/ijWliQAW0iXBdaMmDp+Ul/Csgp8T3cR0Eer+HryQ9Y30XD3pmPXYLA0zdsQzRbrBUWWBEb+jD4ALiiEVMgxWYxDTeCCf7yIlS+C/AH47iiznGgzIqzuZ8CtPmqCRZ/tBY07CnF3C2mKI+Ja4bBso4scWscLi6rWg+MOozpzCooP6QTbZ8P16i/XizueYLPJGKXh4uOymMnVaN9gCuLxEJ0jgneXJQAsBRAA6ZUK1jTtiRiCiyEzbSISNxI/0oFfJJNe4TNN6rwcOmZ9mYxsy/LiGHiyWW9bmdAIZLNhMkUy3L55Hn/BYtGkheG68NuRbiQk2pUaaYAcmeD7p3Y4cb57xzN5IX2hC8n3xjtncr+wbdrPzI9WoZ+ebo9hGTLQmGK3uwZFSo+usJnIaRRK5AmDC/JAmQDaHnQ7f2BAege6AcmXvebXiS0bQlVYzEjWvpSz+00N3HNt6qBNfu1w/lppPE+qvaO0yOrzRMuGhxmneF2CnLB/ak= andrin@DESKTOP-9HLUJS2
-
-
-# Upgrade system
-package_update: true
-#package_upgrade: true
-
-# Install needed packages
-packages:
-  - npm
-  - nginx
-
-runcmd:
-  - su - renggli -c "git clone https://gitlab.com/bbwrl/m346-ref-card-02.git"
-  - su - renggli -c "cd m364-ref-card-02.git"
-  - su - renggli -c "npm install"
-  - su - renggli -c "npx browserslist@latest --update -db"
-  - su - renggli -c "npm update"
-  - su - renggli -c "npm audit fix --force"
-  - su - renggli -c "npm start"
-
