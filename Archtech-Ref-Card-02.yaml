@@ -17,6 +17,7 @@ packages:
   - npm
   - nginx
 
+#Make all commands which do not require sudo not to use sudo 
 runcmd:
   - su - renggli -c "git clone https://gitlab.com/bbwrl/m346-ref-card-02.git"
   - su - renggli -c "cd m364-ref-card-02.git"
