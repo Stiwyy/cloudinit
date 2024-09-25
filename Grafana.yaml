@@ -1,0 +1,83 @@
+#cloud-config
+users:
+  - default
+  - name: renggli
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    ssh_authorized_keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCrcWe/XVCSN/ijWliQAW0iXBdaMmDp+Ul/Csgp8T3cR0Eer+HryQ9Y30XD3pmPXYLA0zdsQzRbrBUWWBEb+jD4ALiiEVMgxWYxDTeCCf7yIlS+C/AH47iiznGgzIqzuZ8CtPmqCRZ/tBY07CnF3C2mKI+Ja4bBso4scWscLi6rWg+MOozpzCooP6QTbZ8P16i/XizueYLPJGKXh4uOymMnVaN9gCuLxEJ0jgneXJQAsBRAA6ZUK1jTtiRiCiyEzbSISNxI/0oFfJJNe4TNN6rwcOmZ9mYxsy/LiGHiyWW9bmdAIZLNhMkUy3L55Hn/BYtGkheG68NuRbiQk2pUaaYAcmeD7p3Y4cb57xzN5IX2hC8n3xjtncr+wbdrPzI9WoZ+ebo9hGTLQmGK3uwZFSo+usJnIaRRK5AmDC/JAmQDaHnQ7f2BAege6AcmXvebXiS0bQlVYzEjWvpSz+00N3HNt6qBNfu1w/lppPE+qvaO0yOrzRMuGhxmneF2CnLB/ak= andrin@DESKTOP-9HLUJS2
+#cloud-config
+package_update: true
+package_upgrade: false
+packages:
+  - wget
+  - tar
+  - software-properties-common
+  - apt-transport-https
+
+runcmd:
+  # Install Prometheus
+  - wget https://github.com/prometheus/prometheus/releases/download/v2.43.0/prometheus-2.43.0.linux-amd64.tar.gz -O /tmp/prometheus.tar.gz
+  - tar -xvf /tmp/prometheus.tar.gz -C /tmp
+  - mv /tmp/prometheus-2.43.0.linux-amd64/prometheus /usr/local/bin/
+  - mv /tmp/prometheus-2.43.0.linux-amd64/promtool /usr/local/bin/
+  - mkdir /etc/prometheus
+  - mv /tmp/prometheus-2.43.0.linux-amd64/prometheus.yml /etc/prometheus/
+  - mv /tmp/prometheus-2.43.0.linux-amd64/consoles /etc/prometheus/
+  - mv /tmp/prometheus-2.43.0.linux-amd64/console_libraries /etc/prometheus/
+  - useradd --no-create-home --shell /bin/false prometheus
+  - mkdir /var/lib/prometheus
+  - chown prometheus:prometheus /var/lib/prometheus
+  - chown prometheus:prometheus /etc/prometheus
+  - echo '[Unit]
+    Description=Prometheus
+    Documentation=https://prometheus.io/docs/introduction/overview/
+    After=network-online.target
+
+    [Service]
+    User=prometheus
+    Group=prometheus
+    ExecStart=/usr/local/bin/prometheus \
+      --config.file /etc/prometheus/prometheus.yml \
+      --storage.tsdb.path /var/lib/prometheus/ \
+      --web.console.libraries /etc/prometheus/console_libraries \
+      --web.console.templates /etc/prometheus/consoles
+    Restart=always
+
+    [Install]
+    WantedBy=multi-user.target' > /etc/systemd/system/prometheus.service
+  - systemctl daemon-reload
+  - systemctl start prometheus
+  - systemctl enable prometheus
+
+  # Install Node Exporter
+  - wget https://github.com/prometheus/node_exporter/releases/download/v1.7.2/node_exporter-1.7.2.linux-amd64.tar.gz -O /tmp/node_exporter.tar.gz
+  - tar -xvf /tmp/node_exporter.tar.gz -C /tmp
+  - mv /tmp/node_exporter-1.7.2.linux-amd64/node_exporter /usr/local/bin/
+  - echo '[Unit]
+    Description=Prometheus Node Exporter
+    Documentation=https://prometheus.io/docs/guides/node-exporter/
+    After=network.target
+
+    [Service]
+    User=nobody
+    Group=nogroup
+    ExecStart=/usr/local/bin/node_exporter
+
+    [Install]
+    WantedBy=multi-user.target' > /etc/systemd/system/node_exporter.service
+  - systemctl daemon-reload
+  - systemctl start node_exporter
+  - systemctl enable node_exporter
+
+  # Add Node Exporter to Prometheus scrape config
+  - sed -i '/scrape_configs:/a \  - job_name: "node_exporter"\n    static_configs:\n      - targets: ["localhost:9100"]' /etc/prometheus/prometheus.yml
+  - systemctl restart prometheus
+
+  # Install Grafana
+  - wget -q -O - https://packages.grafana.com/gpg.key | apt-key add -
+  - add-apt-repository "deb https://packages.grafana.com/oss/deb stable main"
+  - apt-get update
+  - apt-get install grafana -y
+  - systemctl start grafana-server
+  - systemctl enable grafana-server
