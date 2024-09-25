@@ -21,7 +21,7 @@ packages:
 #Make all commands which do not require sudo not to use sudo 
 runcmd:
   - su - renggli -c "git clone https://gitlab.com/bbwrl/m346-ref-card-02"
-  - cd m364-ref-card-02.git
+  - cd m364-ref-card-02
   - npm install
   - npm update
   - npm audit fix --force
