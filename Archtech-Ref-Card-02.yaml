@@ -23,7 +23,6 @@ runcmd:
   - su - renggli -c "git clone https://gitlab.com/bbwrl/m346-ref-card-02.git"
   - cd m364-ref-card-02.git
   - npm install
-  - npx browserslist@latest --update -db
   - npm update
   - npm audit fix --force
   - npm start
