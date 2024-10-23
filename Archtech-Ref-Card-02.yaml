@@ -21,7 +21,7 @@ packages:
 #Make all commands which do not require sudo not to use sudo 
 runcmd:
   - su - renggli -c "git clone https://gitlab.com/bbwrl/m346-ref-card-02"
-  - su - renggli -c "cd m364-ref-card-02 && npm update && npm audit fix --force"
-  - su - renggli -c "cd m364-ref-card-02 && npm install && npm run build"
+  - su - renggli -c "cd m346-ref-card-02 && npm update && npm audit fix --force"
+  - su - renggli -c "cd m346-ref-card-02 && npm install && npm run build"
   - rm /var/www/html/index.nginx-debian.html
-  - cp -r /home/renggli/m364-ref-card-02/build/* /var/www/html/
+  - cp -r /home/renggli/m346-ref-card-02/build/* /var/www/html/
