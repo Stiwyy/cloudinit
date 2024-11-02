@@ -54,6 +54,6 @@ runcmd:
   - sudo sed -i '/^bind-address\s*=/c\bind-address = 0.0.0.0' /etc/mysql/mariadb.conf.d/50-server.cnf || echo 'bind-address = 0.0.0.0' >> /etc/mysql/mariadb.conf.d/50-server.cnf
   - sudo sed -i '/^\(socket\|port\)/c\port = 3306' /etc/mysql/my.cnf
   - sudo systemctl restart mariadb
-  - sudo mysql -e "CREATE USER 'wordpress' IDENTIFIED BY 'password'; CREATE DATABASE IF NOT EXISTS wordpress; GRANT ALL ON worpress.* TO 'wordpress'; CREATE TABLE wordpress.todo_list{item_id INT AUTO_INCREMENT, content VARCHAR(255), PRIMARY KEY(item_id)); INSERT INTO wordpress.todo_list (content) VALUES ("My first important item");"
+  - sudo mysql -e "CREATE USER 'wordpress' IDENTIFIED BY 'password'; CREATE DATABASE IF NOT EXISTS wordpress; GRANT ALL ON worpress.* TO 'wordpress'; CREATE TABLE wordpress.todo_list{item_id INT AUTO_INCREMENT, content VARCHAR(255), PRIMARY KEY(item_id)); INSERT INTO wordpress.todo_list (content) VALUES ('My first important item');"
   
 
