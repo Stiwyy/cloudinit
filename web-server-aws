@@ -1,0 +1,85 @@
+#cloud-config
+users:
+  - default
+  - name: renggli
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    ssh_authorized_keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC6xIWERIZ7yD6W3niuuJ8S8FMGm3YNy1J1yxLZb+KQjY9hwIEfWJSNDIi6bbKRB0ozo0ca5o4/GBYX/MtBrbvqiQMtviboUtr/vLXvVVuTwf8HIubwySbIEfPqrpqpvQQtzRGu1SaDIm0gmlqqWwV6ppRIdy0AQIQCL9rc8pNh8x/gwzWHKKG16suxvH3j+qD+5Du+/NT7ab1BmHqPMmUK1GId8/oUejVHIiK7mGRERoQwdI8sE1eLVNcCU/NYzvx/jLIqDT1+YKQaLOxkiJViCBttn/1xLvW33fEnuuBjFCpjwFtE3/qGbR4jWlOpWqevI6TLKyEbitWPZRVU0UwWI43vMZp5MRG+QVjx79P7nKf6BjUpuvC/KaWx2lIHz7lBig8hyRv40m9kjHuzEN3Yj5mSbZ/XJhFsT0PuQbk9E8EM0bqtHSpRi+OdDH8nHqbWFd45Q4pON1OwRwq4Gztb8i8+ZvaWGmWEAyvXIEimUB+fsoQPRhc9E4OmxTRnboM= andrin@DESKTOP-9HLUJS2
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - apache2
+  - php
+  - php-mysql
+  - php-xml
+  - php-gd
+  - php-curl
+  - nftables
+
+
+write_files:
+  - path: /var/www/html/index.php
+    content: |
+      <?php
+      $user = "wordpress";
+      $password = "password";
+      $database = "wordpress";
+      $table = "todo_list";
+      $host = "34.207.207.203";
+      try {
+        $db = new PDO("mysql:host=$host;dbname=$database", $user, $password);
+        echo "<h2>TODO</h2><ol>";
+        foreach($db->query("SELECT content FROM $table") as $row) {
+          echo "<li>" . $row['content'] . "</li>";
+        }
+        echo "</ol>";
+      } catch (PDOException $e) {
+          print "Error!: " . $e->getMessage() . "<br/>";
+          die();
+      }
+      ?>
+
+  - path: /etc/nftables.conf
+    content: |
+      #!/usr/sbin/nft -f
+      flush ruleset
+      table inet filter {
+              chain input {
+                      type filter hook input priority filter;
+                      policy drop;
+                      iif "lo" accept
+                      ip saddr 127.0.0.0/8 counter packets 0 bytes 0 drop
+                      ip6 saddr ::1 counter packets 0 bytes 0 drop
+                      ip protocol tcp ct state established accept
+                      ip protocol udp ct state established accept
+                      ip protocol icmp ct state established accept
+                      tcp dport 22 accept
+                      tcp dport 80 accept
+                      tcp dport 443 accept
+              }
+              chain forward {
+                      type filter hook forward priority filter;
+                      policy drop;
+              }
+              chain output {
+                      type filter hook output priority filter;
+                      policy drop;
+                      ip protocol tcp ct state established,related,new accept
+                      ip protocol udp ct state established,related,new accept
+                      ip protocol icmp ct state established,related,new accept
+              }
+      }
+
+
+      
+
+runcmd:
+  - sudo systemctl enable nftables
+  - sudo systemctl restart nftables
+  - sudo systemctl enable apache2
+  - sudo systemctl restart apache2
+  
+  
