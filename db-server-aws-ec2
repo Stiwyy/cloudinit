@@ -49,6 +49,7 @@ write_files:
       
 
 runcmd:
+  - sudo systemctl enable nftables
   - sudo systemctl restart nftables  
   - sudo sed -i '/^bind-address\s*=/c\bind-address = 0.0.0.0' /etc/mysql/mariadb.conf.d/50-server.cnf || echo 'bind-address = 0.0.0.0' >> /etc/mysql/mariadb.conf.d/50-server.cnf
   - sudo sed -i '/^\(socket\|port\)/c\port = 3306' /etc/mysql/my.cnf
