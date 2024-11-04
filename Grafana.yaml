@@ -13,12 +13,12 @@ package_update: true
 package_upgrade: true
 
 runcmd:
-  #- sudo add-apt-repository "deb https://packages.grafana.com/oss/deb stable main"
-  #- sudo wget -q -O /usr/share/keyrings/grafana-archive-keyring.gpg https://packages.grafana.com/gpg.key
+  - sudo add-apt-repository "deb https://packages.grafana.com/oss/deb stable main"
+  - sudo wget -q -O /usr/share/keyrings/grafana-archive-keyring.gpg https://packages.grafana.com/gpg.key
   - sudo apt-get update
   - sudo apt-get install grafana
-  #- sudo systemctl enable grafana-server
-  #- sudo systemctl start grafana-server
+  - sudo systemctl enable grafana-server
+  - sudo systemctl start grafana-server
   - wget https://github.com/prometheus/prometheus/releases/download/v3.0.0-beta.1/prometheus-3.0.0-beta.1.linux-amd64.tar.gz
   - sudo tar -xvf prometheus-3.0.0-beta.1.linux-amd64.tar.gz
   - sudo groupadd --system prometheus
@@ -33,12 +33,10 @@ runcmd:
     cat <<EOF | sudo tee /etc/prometheus/prometheus.yml
     global:
       scrape_interval: 15s
-
     scrape_configs:
       - job_name: "prometheus"
         static_configs:
           - targets: ["0.0.0.0:9090"]
-
       - job_name: "node"
         static_configs:
           - targets: ["34.235.130.25:9100"]
@@ -49,7 +47,6 @@ runcmd:
     Description=Prometheus
     Wants=network-online.target
     After=network-online.target
-
     [Service]
     User=prometheus
     Group=prometheus
@@ -59,7 +56,6 @@ runcmd:
      --storage.tsdb.path /var/lib/prometheus/ \
      --web.console.templates=/etc/prometheus/consoles \
      --web.console.libraries=/etc/prometheus/console_libraries
-
     [Install]
     WantedBy=multi-user.target
     EOF
@@ -67,9 +63,9 @@ runcmd:
   - sudo chown prometheus:prometheus /usr/local/bin/promtool
   - sudo chown -R prometheus:prometheus /etc/prometheus
   - sudo chown -R prometheus:prometheus /var/lib/prometheus
-  #- sudo systemctl daemon-reload
-  #- sudo systemctl enable prometheus
-  #- sudo systemctl start prometheus
+  - sudo systemctl daemon-reload
+  - sudo systemctl enable prometheus
+  - sudo systemctl start prometheus
   - sudo wget https://github.com/prometheus/node_exporter/releases/download/v1.7.0/node_exporter-1.7.0.linux-amd64.tar.gz
   - sudo tar xzf node_exporter-1.7.0.linux-amd64.tar.gz
   - sudo mv node_exporter-1.7.0.linux-amd64 /etc/node_exporter
@@ -79,15 +75,13 @@ runcmd:
     Description=Node Exporter
     Wants=network-online.target
     After=network-online.target
-
     [Service]
     ExecStart=/etc/node_exporter/node_exporter
     Restart=always
-
     [Install]
     WantedBy=multi-user.target
     EOF
-  #- sudo systemctl daemon-reload
-  #- sudo systemctl enable node_exporter
-  #- sudo systemctl start node_exporter
+  - sudo systemctl daemon-reload
+  - sudo systemctl enable node_exporter
+  - sudo systemctl start node_exporter
 
