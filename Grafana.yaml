@@ -8,15 +8,84 @@ users:
       - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC6xIWERIZ7yD6W3niuuJ8S8FMGm3YNy1J1yxLZb+KQjY9hwIEfWJSNDIi6bbKRB0ozo0ca5o4/GBYX/MtBrbvqiQMtviboUtr/vLXvVVuTwf8HIubwySbIEfPqrpqpvQQtzRGu1SaDIm0gmlqqWwV6ppRIdy0AQIQCL9rc8pNh8x/gwzWHKKG16suxvH3j+qD+5Du+/NT7ab1BmHqPMmUK1GId8/oUejVHIiK7mGRERoQwdI8sE1eLVNcCU/NYzvx/jLIqDT1+YKQaLOxkiJViCBttn/1xLvW33fEnuuBjFCpjwFtE3/qGbR4jWlOpWqevI6TLKyEbitWPZRVU0UwWI43vMZp5MRG+QVjx79P7nKf6BjUpuvC/KaWx2lIHz7lBig8hyRv40m9kjHuzEN3Yj5mSbZ/XJhFsT0PuQbk9E8EM0bqtHSpRi+OdDH8nHqbWFd45Q4pON1OwRwq4Gztb8i8+ZvaWGmWEAyvXIEimUB+fsoQPRhc9E4OmxTRnboM= andrin@DESKTOP-9HLUJS2
 
 package_update: true
-package_upgrade: false
+package_upgrade: true
 
 runcmd:
-  - wget https://github.com/prometheus/prometheus/releases/download/v2.54.1/prometheus-2.54.1.linux-amd64.tar.gz
-  - tar xfz prom*
-  - cd prom*
-  - ./promethues &
-  - cd ..
-  - wget https://dl.grafana.com/enterprise/release/grafana-enterprise-11.2.0.linux-amd64.tar.gz
-  - tar -zxvf grafana-enterprise-11.2.0.linux-amd64.tar.gz
+  - sudo add-apt-repository "deb https://packages.grafana.com/oss/deb stable main"
+  - sudo wget -q -O /usr/share/keyrings/grafana-archive-keyring.gpg https://packages.grafana.com/gpg.key
+  - sudo apt-get update
+  - sudo apt-get install grafana
+  - sudo systemctl enable grafana-server
+  - sudo systemctl start grafana-server
+  - wget https://github.com/prometheus/prometheus/releases/download/v3.0.0-beta.1/prometheus-3.0.0-beta.1.linux-amd64.tar.gz
+  - sudo tar xvf prometheus-3.0.0-beta.1.linux-amd64.tar.gz
+  - sudo groupadd --system prometheus
+  - sudo useradd -s /sbin/nologin --system -g prometheus prometheus
+  - sudo mkdir /etc/prometheus
+  - sudo mkdir /var/lib/prometheus
+  - sudo mv prometheus-3.0.0-beta.1.linux-amd64/prometheus /usr/local/bin
+  - sudo mv prometheus-3.0.0-beta.1.linux-amd64/promtool /usr/local/bin
+  - sudo mv prometheus-3.0.0-beta.1.linux-amd64/consoles /etc/prometheus
+  - sudo mv prometheus-3.0.0-beta.1.linux-amd64/console_libraries /etc/prometheus
+  - |
+    cat <<EOF | sudo tee /etc/prometheus/prometheus.yml
+    global:
+      scrape_interval: 15s
 
-final_message: "Ich hab's geschafft!"
+    scrape_configs:
+      - job_name: "prometheus"
+        static_configs:
+          - targets: ["0.0.0.0:9090"]
+
+      - job_name: "node"
+        static_configs:
+          - targets: ["34.235.130.25:9100"]
+    EOF
+   - |
+    cat <<EOF | sudo tee /etc/systemd/system/prometheus.service
+    [Unit]
+    Description=Prometheus
+    Wants=network-online.target
+    After=network-online.target
+
+    [Service]
+    User=prometheus
+    Group=prometheus
+    Type=simple
+    ExecStart=/usr/local/bin/prometheus \
+     --config.file /etc/prometheus/prometheus.yml \
+     --storage.tsdb.path /var/lib/prometheus/ \
+     --web.console.templates=/etc/prometheus/consoles \
+     --web.console.libraries=/etc/prometheus/console_libraries
+
+    [Install]
+    WantedBy=multi-user.target
+    EOF
+  - sudo chown prometheus:prometheus /usr/local/bin/prometheus
+  - sudo chown prometheus:prometheus /usr/local/bin/promtool
+  - sudo chown -R prometheus:prometheus /etc/prometheus
+  - sudo chown -R prometheus:prometheus /var/lib/prometheus
+  - sudo systemctl daemon-reload
+  - sudo systemctl enable prometheus
+  - sudo systemctl start prometheus
+  - sudo wget https://github.com/prometheus/node_exporter/releases/download/v1.7.0/node_exporter-1.7.0.linux-amd64.tar.gz
+  - sudo tar xzf node_exporter-1.7.0.linux-amd64.tar.gz
+  - sudo mv node_exporter-1.7.0.linux-amd64 /etc/node_exporter
+  - - |
+    cat <<EOF | sudo tee /etc/systemd/system/node_exporter.service
+    [Unit]
+    Description=Node Exporter
+    Wants=network-online.target
+    After=network-online.target
+
+    [Service]
+    ExecStart=/etc/node_exporter/node_exporter
+    Restart=always
+
+    [Install]
+    WantedBy=multi-user.target
+    EOF
+  - sudo systemctl daemon-reload
+  - sudo systemctl enable node_exporter
+  - sudo systemctl start node_exporter
+
