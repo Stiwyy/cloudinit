@@ -12,8 +12,51 @@ users:
 package_update: true
 package_upgrade: true
 
+write_files:
+  - path: /etc/prometheus/prometheus.yml
+    content: |
+      global:
+            scrape_interval: 15s
+          scrape_configs:
+            - job_name: "prometheus"
+              static_configs:
+                - targets: ["0.0.0.0:9090"]
+            - job_name: "node"
+              static_configs:
+                - targets: ["34.235.130.25:9100"]
+      
+  - path: /etc/systemd/system/prometheus.service
+    content: |
+      [Unit]
+          Description=Prometheus
+          Wants=network-online.target
+          After=network-online.target
+      [Service]
+          User=prometheus
+          Group=prometheus
+          Type=simple
+          ExecStart=/usr/local/bin/prometheus \
+          --config.file /etc/prometheus/prometheus.yml \
+          --storage.tsdb.path /var/lib/prometheus/ \
+          --web.console.templates=/etc/prometheus/consoles \
+          --web.console.libraries=/etc/prometheus/console_libraries
+      [Install]
+          WantedBy=multi-user.target
+          
+  - path: /etc/systemd/system/node_exporter.service
+    content: |
+      [Unit]
+          Description=Node Exporter
+          Wants=network-online.target
+          After=network-online.target
+      [Service]
+          ExecStart=/etc/node_exporter/node_exporter
+          Restart=always
+      [Install]
+          WantedBy=multi-user.target
 
 runcmd:
+  - sudo systemctl daemon-reload
   - sudo add-apt-repository "deb https://packages.grafana.com/oss/deb stable main"
   - sudo wget -q -O /usr/share/keyrings/grafana-archive-keyring.gpg https://packages.grafana.com/gpg.key
   - sudo apt-get update
@@ -24,65 +67,21 @@ runcmd:
   - sudo tar -xvf prometheus-3.0.0-beta.1.linux-amd64.tar.gz
   - sudo groupadd --system prometheus
   - sudo useradd -s /sbin/nologin --system -g prometheus prometheus
-  - sudo mkdir /etc/prometheus
-  - sudo mkdir /var/lib/prometheus
+  - sudo mkdir -p /etc/prometheus
+  - sudo mkdir -p /var/lib/prometheus
   - sudo mv prometheus-3.0.0-beta.1.linux-amd64/prometheus /usr/local/bin
   - sudo mv prometheus-3.0.0-beta.1.linux-amd64/promtool /usr/local/bin
   - sudo mv prometheus-3.0.0-beta.1.linux-amd64/consoles /etc/prometheus
   - sudo mv prometheus-3.0.0-beta.1.linux-amd64/console_libraries /etc/prometheus
-  # - |
-  #   cat <<EOF | sudo tee /etc/prometheus/prometheus.yml
-  #   global:
-  #     scrape_interval: 15s
-  #   scrape_configs:
-  #     - job_name: "prometheus"
-  #       static_configs:
-  #         - targets: ["0.0.0.0:9090"]
-  #     - job_name: "node"
-  #       static_configs:
-  #         - targets: ["34.235.130.25:9100"]
-  #   EOF
-  #  - |
-  #   cat <<EOF | sudo tee /etc/systemd/system/prometheus.service
-  #   [Unit]
-  #   Description=Prometheus
-  #   Wants=network-online.target
-  #   After=network-online.target
-  #   [Service]
-  #   User=prometheus
-  #   Group=prometheus
-  #   Type=simple
-  #   ExecStart=/usr/local/bin/prometheus \
-  #    --config.file /etc/prometheus/prometheus.yml \
-  #    --storage.tsdb.path /var/lib/prometheus/ \
-  #    --web.console.templates=/etc/prometheus/consoles \
-  #    --web.console.libraries=/etc/prometheus/console_libraries
-  #   [Install]
-  #   WantedBy=multi-user.target
-  #   EOF
   - sudo chown prometheus:prometheus /usr/local/bin/prometheus
   - sudo chown prometheus:prometheus /usr/local/bin/promtool
   - sudo chown -R prometheus:prometheus /etc/prometheus
   - sudo chown -R prometheus:prometheus /var/lib/prometheus
-  - sudo systemctl daemon-reload
   - sudo systemctl enable prometheus
   - sudo systemctl start prometheus
   - sudo wget https://github.com/prometheus/node_exporter/releases/download/v1.7.0/node_exporter-1.7.0.linux-amd64.tar.gz
   - sudo tar -xzf node_exporter-1.7.0.linux-amd64.tar.gz
   - sudo mv node_exporter-1.7.0.linux-amd64 /etc/node_exporter
-  # - |
-  #   cat <<EOF | sudo tee /etc/systemd/system/node_exporter.service
-  #   [Unit]
-  #   Description=Node Exporter
-  #   Wants=network-online.target
-  #   After=network-online.target
-  #   [Service]
-  #   ExecStart=/etc/node_exporter/node_exporter
-  #   Restart=always
-  #   [Install]
-  #   WantedBy=multi-user.target
-  #   EOF
-  - sudo systemctl daemon-reload
   - sudo systemctl enable node_exporter
   - sudo systemctl start node_exporter
 
