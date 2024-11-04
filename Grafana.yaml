@@ -5,20 +5,22 @@ users:
     sudo: ALL=(ALL) NOPASSWD:ALL
     shell: /bin/bash
     ssh_authorized_keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINh7P/fAuzssL5EGVf8WABbU6VOwngCWvFnAoLkeqGP1 taishaku@debian
       - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINYQXDMGRT3xdfpaTJwDNXPveToziVmVO02oqaVdmJgb andrin@DESKTOP-9HLUJS2
+
 
 package_update: true
 package_upgrade: true
 
 runcmd:
-  - sudo add-apt-repository "deb https://packages.grafana.com/oss/deb stable main"
-  - sudo wget -q -O /usr/share/keyrings/grafana-archive-keyring.gpg https://packages.grafana.com/gpg.key
+  #- sudo add-apt-repository "deb https://packages.grafana.com/oss/deb stable main"
+  #- sudo wget -q -O /usr/share/keyrings/grafana-archive-keyring.gpg https://packages.grafana.com/gpg.key
   - sudo apt-get update
   - sudo apt-get install grafana
-  - sudo systemctl enable grafana-server
-  - sudo systemctl start grafana-server
+  #- sudo systemctl enable grafana-server
+  #- sudo systemctl start grafana-server
   - wget https://github.com/prometheus/prometheus/releases/download/v3.0.0-beta.1/prometheus-3.0.0-beta.1.linux-amd64.tar.gz
-  - sudo tar xvf prometheus-3.0.0-beta.1.linux-amd64.tar.gz
+  - sudo tar -xvf prometheus-3.0.0-beta.1.linux-amd64.tar.gz
   - sudo groupadd --system prometheus
   - sudo useradd -s /sbin/nologin --system -g prometheus prometheus
   - sudo mkdir /etc/prometheus
@@ -65,13 +67,13 @@ runcmd:
   - sudo chown prometheus:prometheus /usr/local/bin/promtool
   - sudo chown -R prometheus:prometheus /etc/prometheus
   - sudo chown -R prometheus:prometheus /var/lib/prometheus
-  - sudo systemctl daemon-reload
-  - sudo systemctl enable prometheus
-  - sudo systemctl start prometheus
+  #- sudo systemctl daemon-reload
+  #- sudo systemctl enable prometheus
+  #- sudo systemctl start prometheus
   - sudo wget https://github.com/prometheus/node_exporter/releases/download/v1.7.0/node_exporter-1.7.0.linux-amd64.tar.gz
   - sudo tar xzf node_exporter-1.7.0.linux-amd64.tar.gz
   - sudo mv node_exporter-1.7.0.linux-amd64 /etc/node_exporter
-  - - |
+  - |
     cat <<EOF | sudo tee /etc/systemd/system/node_exporter.service
     [Unit]
     Description=Node Exporter
@@ -85,7 +87,7 @@ runcmd:
     [Install]
     WantedBy=multi-user.target
     EOF
-  - sudo systemctl daemon-reload
-  - sudo systemctl enable node_exporter
-  - sudo systemctl start node_exporter
+  #- sudo systemctl daemon-reload
+  #- sudo systemctl enable node_exporter
+  #- sudo systemctl start node_exporter
 
