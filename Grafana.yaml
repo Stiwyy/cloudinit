@@ -11,19 +11,26 @@ users:
 
 package_update: true
 package_upgrade: true
+  
 
 write_files:
-  - path: /etc/prometheus/prometheus.yml
+  - path: /tmp/prometheus/prometheus.yml
     content: |
       global:
-            scrape_interval: 15s
-          scrape_configs:
-            - job_name: "prometheus"
-              static_configs:
-                - targets: ["0.0.0.0:9090"]
-            - job_name: "node"
-              static_configs:
-                - targets: ["0.0.0.0:9100"]
+        scrape_interval: 15s
+        evaluation_interval: 15s 
+      alerting:
+        alertmanagers:
+          - static_configs:
+            - targets:
+      rule_files:
+      scrape_configs:
+        - job_name: "prometheus"
+          static_configs:
+            - targets: ["0.0.0.0:9090"]
+        - job_name: "node"
+          static_configs:
+            - targets: ["0.0.0.0:9100"]
       
   - path: /etc/systemd/system/prometheus.service
     content: |
@@ -56,33 +63,34 @@ write_files:
           WantedBy=multi-user.target
 
 runcmd:
-  - sudo systemctl daemon-reload
   - wget -q -O - https://apt.grafana.com/gpg.key | gpg --dearmor | sudo tee /etc/apt/keyrings/grafana.gpg > /dev/null
   - echo "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com/ stable main" | sudo tee /etc/apt/sources.list.d/grafana.list
   - sudo ln -s /etc/apt/keyrings/grafana.gpg /etc/apt/trusted.gpg.d/grafana.gpg
   - sudo apt-get update
   - sudo apt-get install -y grafana 
-  - sudo systemctl enable grafana-server
-  - sudo systemctl start grafana-server
   - wget https://github.com/prometheus/prometheus/releases/download/v3.0.0-beta.1/prometheus-3.0.0-beta.1.linux-amd64.tar.gz
   - sudo tar -xvf prometheus-3.0.0-beta.1.linux-amd64.tar.gz
-  - sudo groupadd --system prometheus
-  - sudo useradd -s /sbin/nologin --system -g prometheus prometheus
   - sudo mkdir -p /etc/prometheus
   - sudo mkdir -p /var/lib/prometheus
   - sudo mv prometheus-3.0.0-beta.1.linux-amd64/prometheus /usr/local/bin
   - sudo mv prometheus-3.0.0-beta.1.linux-amd64/promtool /usr/local/bin
   - sudo mv prometheus-3.0.0-beta.1.linux-amd64/consoles /etc/prometheus
   - sudo mv prometheus-3.0.0-beta.1.linux-amd64/console_libraries /etc/prometheus
+  - sudo wget https://github.com/prometheus/node_exporter/releases/download/v1.7.0/node_exporter-1.7.0.linux-amd64.tar.gz
+  - sudo tar -xzf node_exporter-1.7.0.linux-amd64.tar.gz
+  - sudo mv node_exporter-1.7.0.linux-amd64 /etc/node_exporter
+  - sudo mv /tmp/prometheus/prometheus.yml /etc/prometheus/prometheus.yml
+  - sudo systemctl daemon-reload
+  - sudo systemctl enable grafana-server
+  - sudo systemctl start grafana-server
+  - sudo groupadd --system prometheus
+  - sudo useradd -s /sbin/nologin --system -g prometheus prometheus
   - sudo chown prometheus:prometheus /usr/local/bin/prometheus
   - sudo chown prometheus:prometheus /usr/local/bin/promtool
   - sudo chown -R prometheus:prometheus /etc/prometheus
   - sudo chown -R prometheus:prometheus /var/lib/prometheus
   - sudo systemctl enable prometheus
   - sudo systemctl start prometheus
-  - sudo wget https://github.com/prometheus/node_exporter/releases/download/v1.7.0/node_exporter-1.7.0.linux-amd64.tar.gz
-  - sudo tar -xzf node_exporter-1.7.0.linux-amd64.tar.gz
-  - sudo mv node_exporter-1.7.0.linux-amd64 /etc/node_exporter
   - sudo systemctl enable node_exporter
   - sudo systemctl start node_exporter
 
