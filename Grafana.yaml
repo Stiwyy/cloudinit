@@ -59,6 +59,7 @@ runcmd:
   - sudo systemctl daemon-reload
   - wget -q -O - https://apt.grafana.com/gpg.key | gpg --dearmor | sudo tee /etc/apt/keyrings/grafana.gpg
   - echo "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com/ stable main" | sudo tee /etc/apt/sources.list.d/grafana.list
+  - sudo ln -s /etc/apt/keyrings/grafana.gpg /etc/apt/trusted.gpg.d/grafana.gpg
   - sudo apt-get update
   - sudo apt-get install grafana
   - sudo systemctl enable grafana-server
