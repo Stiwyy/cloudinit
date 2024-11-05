@@ -8,10 +8,8 @@ users:
       - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINh7P/fAuzssL5EGVf8WABbU6VOwngCWvFnAoLkeqGP1 taishaku@debian
       - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINYQXDMGRT3xdfpaTJwDNXPveToziVmVO02oqaVdmJgb andrin@DESKTOP-9HLUJS2
 
-
 package_update: true
 package_upgrade: true
-  
 
 write_files:
   - path: /tmp/prometheus/prometheus.yml
