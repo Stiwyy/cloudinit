@@ -1,47 +1,32 @@
-sudo apt install mysql-server
-    2  export MYSQL_HOST=wordpress-db.cogrb9epzmxy.us-east-1.rds.amazonaws.com
-    3  sudo mysql
-    4  mysql --user=admin --password=admin wordpress
-    5  mysql --user=admin --password=12345678 wordpress
-    6  mysql -h wordpress-db.cogrb9epzmxy.us-east-1.rds.amazonaws.com -u admin -p
-    7  sudo apt install apache2
-    8  wget https://wordpress.org/latest.tar.gz
-    9  tar -xzf latest.tar.gz
-   10  ls
-   11  cd wordpress
-   12  ls
-   13  cd..
-   14  cd ..
-   15  cp wordpress/wp-config-sample.php wordpress/wp-config.php
-   16  nano wordpress/wp-config.ph
-   17  cp wordpress/wp-config-sample.php wordpress/wp-config.php
-   18  nano wordpress/wp-config.ph
-   19  nano wordpress/wp-config.php
-   20  clear
-   21  sed -i 's/database_name_here/'"$wordpress"'/g' wordpress/wp-config.php;
-   22  nano wordpress/wp-config.php
-   23  sed -i 's/database_name_here/'"wordpress"'/g' wordpress/wp-config.php;
-   24  nano wordpress/wp-config.php
-   25  sed -i 's/username_here/'"wordpress"'/g' wordpress/wp-config.php;
-   26  sed -i 's/password_here/'"password"'/g' wordpress/wp-config.php;
-   27  sed -i 's/localhost/wordpress-db.cogrb9epzmxy.us-east-1.rds.amazonaws.com/g' wp-config.php;
-   28  sed -i 's/localhost/wordpress-db.cogrb9epzmxy.us-east-1.rds.amazonaws.com/g' wordpress/wp-config.php;
-   29  nano wordpress/wp-config.php
-   30  sudo cp -r wordpress/* /var/www/html
-   31  sudo rm /var/www/html index.html
-   32  sudo rm -r /var/www/html index.html
-   33* sudo rm /var/www/html/index.htm[Bl
-   34*
-   35  sudo ls /var/www/html
-   36  sudo ls /var/www
-   37  sudo mkdir /var/www/html
-   38  sudo ls /var/www
-   39  sudo cp -r wordpress/* /var/www/html
-   40  sudo ls /var/www/html
-   41  sudo apt install php
-   42  sudo apt install libapache2-mod-php php
-   43  sudo apt update
-   44  sudo apt install libapache2-mod-php php
-   45  sudo apt install php-mysqli
-   46  sudo apt install php-json
-   47  history
+#cloud-config
+users:
+  - default
+  - name: renggli
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    ssh_authorized_keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINh7P/fAuzssL5EGVf8WABbU6VOwngCWvFnAoLkeqGP1 taishaku@debian
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGfK+Q8RcGAFlU1/ssU+bGz8ymB0qMxG3HsPtTuTI7r0 andrin@DESKTOP-9HLUJS2
+
+package_update: true 
+packages:
+  - mysql-client
+  - apache2
+  - php
+  - libapache2-mod-php
+  - php-mysqli
+  - php-json
+
+runcmd:
+  - mysql -h wordpress-db.cogrb9epzmxy.us-east-1.rds.amazonaws.com -u admin -p12345678 -e "CREATE USER 'wordpress' IDENTIFIED BY 'password'; GRANT ALL PRIVILEGES ON wordpress.* TO 'wordpress'; FLUSH PRIVILEGES;"
+  - wget https://wordpress.org/latest.tar.gz
+  - tar -xzf latest.tar.gz
+  - cp wordpress/wp-config-sample.php wordpress/wp-config.php
+  - sed -i 's/database_name_here/wordpress/g' wordpress/wp-config.php
+  - sed -i 's/username_here/wordpress/g' wordpress/wp-config.php
+  - sed -i 's/password_here/password/g' wordpress/wp-config.php
+  - sed -i 's/localhost/wordpress-db.cogrb9epzmxy.us-east-1.rds.amazonaws.com/g' wordpress/wp-config.php
+  - rm -f /var/www/html/index.html
+  - cp -r wordpress/* /var/www/html/
+  - apt install php-mysqli
+
