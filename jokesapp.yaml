@@ -12,6 +12,7 @@ package_update: true
 packages:
   - mysql-client
 
+# After running the Cloud-Init file run this "export PATH=$PATH:/home/renggli/apache-maven-3.9.9/bin:/usr/bin:/bin" (also change Path if your user in not "renggli") to be able to run every command freely again.
 runcmd:
   - echo 'export PATH=$PATH:/home/renggli/apache-maven-3.9.9/bin' >> /etc/environment #Change Path if user is not "renggli"
   - echo 'export PATH=$PATH:/home/renggli/apache-maven-3.9.9/bin' >> /home/ubuntu/.bashrc #Change Path if user is not "renggli"
