@@ -1,0 +1,39 @@
+#cloud-config
+users:
+  - default
+  - name: renggli
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    ssh_authorized_keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC/z0nTUXR51MAQXH+H/hJyoaSkqEV1Xt4aykciSi0NherZfJNm0shgkQf9/+YeCLj3tBsb+iH4FWY+4tPAfNktciYFr8RgCr8u7ejsznT0CRq7SkgOZOyoHfTTY20X44wmvxJHj20nrkudDe6xUDhxxNiYdP0YdIMGCYbcrtilbknZp8o/ojuxGYyIycNMp7GURNno8YpaeaqyeNp4JRjxf70q5H3oNUnwVYs6bmHLApiZY/uFxI4XmOkrMYRcWHMJtmr3CqSb3XGhWQYYRCoSnDU2WCi21D3YFW9ygwyfZqqPHzuSxFy7dJusywMIQ/4jJx0e5sqVhd6QI6335wIYjweAivucehUQVF80rAI4S5A7ZusWRW0b9cxBHdT9/jusPzeSE+k9AwaDGf94Sr5Or31oe+kI52dCWN8LV3T2lcFTmz9MuYskGrUoXSKWVFTV7EEhY1cF9GTiW2vzW0RpJNw633uunVOFZ+He/azvgKMyTq7N62umJFAlfomMSWU= andrin@DESKTOP-9HLUJS2
+
+package_update: true
+
+packages:
+  - mysql-client
+
+runcmd:
+  - echo 'export PATH=$PATH:/home/renggli/apache-maven-3.9.9/bin' >> /etc/environment
+  - echo 'export PATH=$PATH:/home/renggli/apache-maven-3.9.9/bin' >> /home/ubuntu/.bashrc
+  - . /home/ubuntu/.bashrc
+  - apt-get install -y openjdk-11-jdk
+  - mysql -h db-jokeapp.cogrb9epzmxy.us-east-1.rds.amazonaws.com -u admin -p12345678 -e "DROP DATABASE IF EXISTS jokedb; CREATE DATABASE jokedb; CREATE USER 'jokedbuser' IDENTIFIED BY '123456'; GRANT ALL PRIVILEGES ON jokedb.* TO 'jokedbuser'; FLUSH PRIVILEGES;"
+  - cd /home/renggli/ && wget https://dlcdn.apache.org/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.tar.gz
+  - cd /home/renggli/ && tar xvf apache-maven-3.9.9-bin.tar.gz
+  - . /home/ubuntu/.bashrc
+  - . /etc/environment
+  - cd /home/renggli/ && git clone https://gitlab.com/bbwrl/m346-ref-card-03.git
+  - sleep 5
+  - sed -i 's|http://localhost:3000|*|g' /home/renggli/m346-ref-card-03/src/main/java/ch/bbw/architecturerefcard03/controller/JokeRestController.java
+  - sudo > /home/renggli/m346-ref-card-03/src/main/resources/application.properties
+  - echo "spring.datasource.url=jdbc:mariadb://db-jokeapp.cogrb9epzmxy.us-east-1.rds.amazonaws.com/jokedb" >> /home/renggli/m346-ref-card-03/src/main/resources/application.properties
+  - echo "spring.datasource.username=jokedbuser" >> /home/renggli/m346-ref-card-03/src/main/resources/application.properties
+  - echo "spring.datasource.password=123456" >> /home/renggli/m346-ref-card-03/src/main/resources/application.properties
+  - echo "spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL8Dialect" >> /home/renggli/m346-ref-card-03/src/main/resources/application.properties
+  - echo "spring.datasource.driver-class-name=org.mariadb.jdbc.Driver" >> /home/renggli/m346-ref-card-03/src/main/resources/application.properties
+  - echo "# Datenbankinitialisierung" >> /home/renggli/m346-ref-card-03/src/main/resources/application.properties
+  - echo "spring.sql.init.mode=always" >> /home/renggli/m346-ref-card-03/src/main/resources/application.properties
+  - sudo chown -R renggli:renggli /home/renggli/m346-ref-card-03
+  - sudo chmod -R 755 /home/renggli/m346-ref-card-03
+  - cd /home/renggli/m346-ref-card-03/ && mvn package
+  - cd /home/renggli/m346-ref-card-03/ && java -DDB_USERNAME="jokedbuser" -DDB_PASSWORD="123456" -jar target/architecture-refcard-03-0.0.1-SNAPSHOT.jar
