@@ -15,7 +15,7 @@ fi
 
 
 echo "Erstelle MySQL-Dump..."
-mysqldump -u "$DB_USER" -p"$DB_PASSWORD" "$DB_NAME" > "/tmp/$DUMP_FILE"
+mysqldump -h db-jokesapp.cogrb9epzmxy.us-east-1.rds.amazonaws.com -u "$DB_USER" -p"$DB_PASSWORD" "$DB_NAME" > "/tmp/$DUMP_FILE"
 if [ $? -ne 0 ]; then
     echo "Fehler beim Erstellen des MySQL-Dumps."
     exit 1
@@ -31,7 +31,7 @@ fi
 echo "Dump komprimiert: /tmp/$ARCHIVE_FILE"
 
 echo "Verschiebe Archiv nach $BACKUP_DIR..."
-mv "/tmp/$ARCHIVE_FILE" "$BACKUP_DIR/"
+sudo mv "/tmp/$ARCHIVE_FILE" "$BACKUP_DIR/"
 if [ $? -ne 0 ]; then
     echo "Fehler beim Verschieben des Archivs."
     exit 1
